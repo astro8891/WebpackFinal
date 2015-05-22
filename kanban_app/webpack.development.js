@@ -1,5 +1,4 @@
 var path = require('path');
-
 module.exports = {
     entry: [
         'webpack/hot/dev-server',
@@ -9,4 +8,10 @@ module.exports = {
         path: path.resolve(__dirname, 'build'),
         filename: 'bundle.js',
     },
+    module: {
+        loaders: [{
+            test: /\.css$/,
+            loaders: ['style', 'css']
+        }]
+    }
 };
