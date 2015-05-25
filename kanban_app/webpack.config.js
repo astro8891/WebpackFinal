@@ -1,5 +1,7 @@
 var path = require('path');
 var merge = require('./lib/merge');
+var webpack = require('webpack');
+var _ = require('lodash');
 
 var TARGET = process.env.TARGET;
 
@@ -35,22 +37,47 @@ var common = {
 
 var mergeConfig = merge.bind(null, common);
 
-if (TARGET === 'build') {
-	module.exports = mergeConfig({});
+if(TARGET === 'build') {
+  module.exports = mergeConfig({
+    module: {
+      loaders: [
+        {
+          test: /\.jsx?$/,
+          loader: 'babel',
+          include: path.join(ROOT_PATH, 'app'),
+        }
+      ]
+    },
+    plugins: [
+      new webpack.DefinePlugin({
+        'process.env': {
+          // This has effect on the react lib size
+          'NODE_ENV': JSON.stringify('production'),
+        }
+      }),
+      new webpack.optimize.UglifyJsPlugin({
+        compress: {
+          warnings: false
+        },
+      }),
+    ],
+  });
 }
 
 if (TARGET === 'dev') {
 	module.exports = mergeConfig({
 		entry: ['webpack/hot/dev-server'],
 		module: {
-			preLoaders: [{
-				test: /\.jsx?$/,
-				// we are using `eslint-loader` explicitly since
-				// we have eslint module installed. This way we
-				// can be certain that it uses the right loader
-				loader: 'eslint-loader',
-				include: path.join(ROOT_PATH, 'app'),
-			}],
-		},
-	});
+			loaders: [
+        {
+          test: /\.jsx?$/,
+          loaders: ['react-hot', 'babel'],
+          include: path.join(ROOT_PATH, 'app'),
+        }
+      ]
+    },
+    plugins: [
+      new webpack.NoErrorsPlugin()
+    ],
+  });
 }
